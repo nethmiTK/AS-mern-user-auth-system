@@ -1,54 +1,47 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const [loginData, setLoginData] = useState({
-    emailOrUsername: "",
-    password: "",
+  const [formData, setFormData] = useState({
+    emailOrUsername: '',
+    password: '',
   });
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setLoginData({ ...loginData, [e.target.name]: e.target.value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(loginData);
-    // Submit login logic here
+    try {
+      const { data } = await axios.post(`${process.env.REACT_APP_API_URL}/auth/login`, formData);
+      localStorage.setItem('token', data.token);
+      navigate('/');
+    } catch (err) {
+      console.error('Error logging in:', err);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
-
-        <input
-          type="text"
-          name="emailOrUsername"
-          placeholder="Email or Username"
-          onChange={handleChange}
-          required
-          className="mb-4 w-full px-4 py-2 border rounded-md"
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          onChange={handleChange}
-          required
-          className="mb-4 w-full px-4 py-2 border rounded-md"
-        />
-
-        <button
-          type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-        >
-          Login
-        </button>
-      </form>
-    </div>
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        name="emailOrUsername"
+        placeholder="Email or Username"
+        onChange={handleChange}
+        required
+      />
+      <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        onChange={handleChange}
+        required
+      />
+      <button type="submit">Login</button>
+    </form>
   );
 };
 
