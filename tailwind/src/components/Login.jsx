@@ -4,62 +4,56 @@ import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    emailOrUsername: '',
+    email: '',
     password: '',
   });
   const navigate = useNavigate();
 
+  // Handle form input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post(`${process.env.REACT_APP_API_URL}/auth/login`, formData);
-      localStorage.setItem('token', data.token);
-      navigate('/');
+      const { data } = await axios.post('http://localhost:3001/api/auth/login', formData);
+      alert(data.message); // Show success message
+      localStorage.setItem('token', data.token); // Save token to localStorage
+      navigate('/dashboard'); // Redirect to a dashboard or home page after successful login
     } catch (err) {
-      console.error('Error logging in:', err);
+      if (err.response) {
+        alert(err.response.data.message || 'Error logging in');
+      } else {
+        alert('Error logging in');
+      }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 relative overflow-hidden">
-      <div className="bg-animated-balls"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md space-y-6 z-10"
+        className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md space-y-6"
       >
-        <h2 className="text-4xl font-bold text-center text-gray-800">Welcome Back</h2>
+        <h2 className="text-4xl font-bold text-center text-gray-800">Login</h2>
 
-        <div>
-          <label htmlFor="emailOrUsername" className="block text-sm font-medium text-gray-700">
-            Email or Username
-          </label>
-          <input
-            type="text"
-            name="emailOrUsername"
-            placeholder="Email or Username"
-            onChange={handleChange}
-            required
-            className="mt-2 w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            onChange={handleChange}
-            required
-            className="mt-2 w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600"
-          />
-        </div>
+        {['email', 'password'].map((field, idx) => (
+          <div key={idx}>
+            <label htmlFor={field} className="block text-sm font-medium text-gray-700 capitalize">
+              {field.charAt(0).toUpperCase() + field.slice(1)}
+            </label>
+            <input
+              type={field === 'email' ? 'email' : 'password'}
+              name={field}
+              placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+              onChange={handleChange}
+              required
+              className="mt-2 w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600"
+            />
+          </div>
+        ))}
 
         <button
           type="submit"
