@@ -1,4 +1,3 @@
-// models/User.js
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
@@ -20,6 +19,6 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-});
+}, { timestamps: true }); // Adds createdAt & updatedAt
 
 module.exports = mongoose.model('User', UserSchema);

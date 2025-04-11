@@ -11,27 +11,34 @@ const Register = () => {
   });
   const navigate = useNavigate();
 
+  // Handle form input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form data:', formData); // Log form data for debugging
     try {
-      const { data } = await axios.post(`${process.env.REACT_APP_API_URL}/auth/register`, formData);
-      localStorage.setItem('token', data.token);
-      navigate('/');
+      const { data } = await axios.post('http://localhost:3001/api/auth/register', formData);
+      alert(data.message); // Show success message
+      navigate('/'); // Redirect to home or login page after successful registration
     } catch (err) {
-      console.error('Error registering:', err);
+      // Handle errors from the backend
+      if (err.response) {
+        alert(err.response.data.message || 'Error registering user');
+      } else {
+        alert('Error registering user');
+      }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 relative overflow-hidden">
-      <div className="bg-animated-balls"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md space-y-6 z-10"
+        className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md space-y-6"
       >
         <h2 className="text-4xl font-bold text-center text-gray-800">Create Account</h2>
 
