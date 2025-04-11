@@ -1,130 +1,158 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-  const [userData, setUserData] = useState({
+  const [profile, setProfile] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState({
     fullName: '',
     username: '',
     email: '',
-    profilePic: '',
   });
-  const [newPic, setNewPic] = useState(null);
-  const navigate = useNavigate();
+  const [notification, setNotification] = useState('');
+  const token = localStorage.getItem('token');
 
-  // Fetch user data from API (using token or session)
+  // Fetch user profile on mount
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:3001/api/auth/user', {
+        const { data } = await axios.get('http://localhost:3001/api/auth/profile', {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setUserData(response.data);
+        setProfile(data);
+        setFormData(data);
+        setNotification('');
       } catch (err) {
-        console.error('Error fetching user data:', err);
+        console.error('Error fetching profile:', err);
+        setNotification('Error fetching profile. Please check your token or API connection.');
       }
     };
 
-    fetchUserData();
-  }, []);
+    if (token) {
+      fetchProfile();
+    } else {
+      setNotification('No token found. Please login again.');
+    }
+  }, [token]);
 
-  // Handle form input changes
   const handleChange = (e) => {
-    setUserData({ ...userData, [e.target.name]: e.target.value });
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
-  // Handle profile picture upload
-  const handlePicChange = (e) => {
-    const file = e.target.files[0];
-    setNewPic(file);
-  };
-
-  // Handle form submission to update user details
-  const handleSubmit = async (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      const formData = new FormData();
-      formData.append('userId', userData._id);
-      formData.append('fullName', userData.fullName);
-      formData.append('username', userData.username);
-      formData.append('email', userData.email);
-      if (newPic) formData.append('profilePic', newPic);
-
-      const response = await axios.put('http://localhost:3001/api/auth/update', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`,
-        },
+      const { data } = await axios.put('http://localhost:3001/api/auth/update', formData, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      alert(response.data.message);
+      setNotification(data.message || 'Profile updated successfully.');
+      setProfile(data.user);
+      setEditMode(false);
     } catch (err) {
-      console.error('Error updating user:', err);
-      alert('Error updating user data');
+      console.error('Error updating profile:', err);
+      setNotification(err.response?.data?.message || 'Profile update failed.');
     }
   };
 
+  if (notification && !profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+        <p>{notification}</p>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+        <p>Loading profile...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gray-900">
-      <div className="w-full max-w-lg bg-white p-8 rounded-xl shadow-xl mt-10">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">User Dashboard</h2>
+    <div className="min-h-screen bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center p-6">
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-lg">
+        <div className="flex flex-col items-center mb-6">
+          <img
+            src={`https://api.dicebear.com/7.x/initials/svg?seed=${profile.fullName}`}
+            alt="User Avatar"
+            className="w-28 h-28 rounded-full border-4 border-purple-600"
+          />
+          <h2 className="mt-4 text-2xl font-bold">{profile.fullName}</h2>
+          <p className="text-gray-500">@{profile.username}</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">Full Name</label>
-            <input
-              type="text"
-              id="fullName"
-              name="fullName"
-              value={userData.fullName}
-              onChange={handleChange}
-              className="mt-2 w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600"
-            />
+        {notification && (
+          <div className="mb-4 text-center text-red-600">
+            {notification}
           </div>
+        )}
 
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              value={userData.username}
-              onChange={handleChange}
-              className="mt-2 w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600"
-            />
+        {editMode ? (
+          <form onSubmit={handleUpdate} className="space-y-4">
+            <div>
+              <label className="block text-gray-700 mb-1">Full Name</label>
+              <input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-700 mb-1">Username</label>
+              <input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            </div>
+            <div className="flex justify-between mt-6">
+              <button
+                type="button"
+                onClick={() => { setEditMode(false); setNotification(''); }}
+                className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500 transition duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
+              >
+                Save Changes
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="space-y-2">
+            <p><strong>Full Name:</strong> {profile.fullName}</p>
+            <p><strong>Username:</strong> {profile.username}</p>
+            <p><strong>Email:</strong> {profile.email}</p>
+            <button
+              onClick={() => { setEditMode(true); setNotification(''); }}
+              className="mt-6 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
+            >
+              Edit Profile
+            </button>
           </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={userData.email}
-              onChange={handleChange}
-              className="mt-2 w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="profilePic" className="block text-sm font-medium text-gray-700">Profile Picture</label>
-            <input
-              type="file"
-              id="profilePic"
-              name="profilePic"
-              onChange={handlePicChange}
-              className="mt-2 w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-purple-600 text-white py-3 rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
-          >
-            Update Profile
-          </button>
-        </form>
+        )}
       </div>
     </div>
   );

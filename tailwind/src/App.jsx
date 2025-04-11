@@ -1,20 +1,16 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";  // Import Navigate
+import { Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import Register from "./components/Register";
-import "./index.css";
 import Dashboard from "./components/Dashboard";
+import "./index.css";
 
 function App() {
   return (
     <Routes>
-      {/* Redirect root to login */}
-      <Route path="/" element={<Navigate to="/register" />} />
+      <Route path="/" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/login" element={<Login />} />
       <Route path="/dashboard" element={<Dashboard />} />
-
-
     </Routes>
   );
 }
