@@ -2,28 +2,24 @@ const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/authMiddleware');
 
-// For demonstration, we use an in‑memory store.
-// Let’s assume the logged in user "hashini" already exists.
-let userData = {
-  fullName: "Ghashini",
-  username: "hashini",
-  email: "hashini@example.com"
-};
-
-// GET user profile
+// GET current user profile
 router.get('/profile', authenticate, (req, res) => {
-  // In a real project, look up the user using req.user.id
-  res.json(userData);
+  res.json(req.user);
 });
 
-// PUT update profile
-router.put('/update', authenticate, (req, res) => {
-  const { fullName, username, email } = req.body;
-  if (fullName && username && email) {
-    userData = { fullName, username, email };
-    res.json({ message: 'Profile updated successfully', user: userData });
-  } else {
-    res.status(400).json({ message: 'Invalid data provided' });
+// UPDATE current user profile
+router.put('/update', authenticate, async (req, res) => {
+  try {
+    const { fullName, username, email } = req.body;
+    // Update only the fields that are passed in.
+    if (fullName) req.user.fullName = fullName;
+    if (username) req.user.username = username;
+    if (email) req.user.email = email;
+    await req.user.save();
+    res.json({ message: 'Profile updated successfully', user: req.user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Profile update failed' });
   }
 });
 
