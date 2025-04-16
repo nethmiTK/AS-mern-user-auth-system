@@ -67,64 +67,81 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-500 to-purple-600 flex flex-col items-center justify-center p-6">
-      <h1 className="text-3xl font-bold mb-4">User Dashboard</h1>
-      {notification && <p className="mb-4 text-red-600">{notification}</p>}
+    <div className="relative min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] flex flex-col items-center justify-center p-6 overflow-hidden">
+      {/* Water bubbles animation */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-3 h-3 bg-blue-400 rounded-full opacity-20 animate-bubble"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDuration: `${4 + Math.random() * 4}s`,
+              animationDelay: `${Math.random() * 4}s`,
+              bottom: `-${Math.random() * 20}px`,
+            }}
+          ></div>
+        ))}
+      </div>
+
+      <h1 className="text-4xl font-bold text-white mb-8 z-10">👤 User Dashboard</h1>
+      {notification && <p className="mb-4 text-red-400 z-10">{notification}</p>}
+
       {profile ? (
-        <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
+        <div className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl shadow-xl w-full max-w-lg text-white z-10">
           {editMode ? (
-            <form onSubmit={handleUpdate} className="space-y-4">
+            <form onSubmit={handleUpdate} className="space-y-5">
               <div>
-                <label className="block text-gray-700">Full Name</label>
+                <label className="block text-sm mb-1">Full Name</label>
                 <input
                   type="text"
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
-                  className="border p-2 w-full rounded"
+                  className="bg-black/30 border border-gray-600 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
               <div>
-                <label className="block text-gray-700">Username</label>
+                <label className="block text-sm mb-1">Username</label>
                 <input
                   type="text"
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
-                  className="border p-2 w-full rounded"
+                  className="bg-black/30 border border-gray-600 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
               <div>
-                <label className="block text-gray-700">Email</label>
+                <label className="block text-sm mb-1">Email</label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="border p-2 w-full rounded"
+                  className="bg-black/30 border border-gray-600 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
-              <div className="flex justify-between mt-4">
+              <div className="flex justify-between mt-6">
                 <button
                   type="button"
                   onClick={() => {
                     setEditMode(false);
                     setNotification('');
                   }}
-                  className="px-4 py-2 bg-gray-500 text-white rounded"
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded"
+                  className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg"
                 >
                   Save Changes
                 </button>
               </div>
             </form>
           ) : (
-            <div>
+            <div className="space-y-4">
               <p>
                 <strong>Full Name:</strong> {profile.fullName}
               </p>
@@ -136,7 +153,7 @@ const Dashboard = () => {
               </p>
               <button
                 onClick={() => setEditMode(true)}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+                className="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
               >
                 Edit Profile
               </button>
@@ -144,7 +161,7 @@ const Dashboard = () => {
           )}
         </div>
       ) : (
-        <p>Loading profile...</p>
+        <p className="text-white z-10">Loading profile...</p>
       )}
     </div>
   );
