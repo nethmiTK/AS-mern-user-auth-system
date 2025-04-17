@@ -10,6 +10,7 @@ const Dashboard = () => {
     username: '',
     email: '',
   });
+  const [profilePic, setProfilePic] = useState(null);
   const [notification, setNotification] = useState('');
   const navigate = useNavigate();
 
@@ -44,17 +45,31 @@ const Dashboard = () => {
     fetchProfile();
   }, [navigate]);
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleImageChange = (e) => {
+    setProfilePic(e.target.files[0]);
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
+    const data = new FormData();
+
+    data.append('fullName', formData.fullName);
+    data.append('username', formData.username);
+    data.append('email', formData.email);
+    if (profilePic) {
+      data.append('profilePic', profilePic);
+    }
+
     try {
-      const res = await axios.put('http://localhost:3001/api/users/update', formData, {
+      const res = await axios.put('http://localhost:3001/api/users/update', data, {
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
         },
       });
       setProfile(res.data.user);
@@ -68,7 +83,6 @@ const Dashboard = () => {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] flex flex-col items-center justify-center p-6 overflow-hidden">
-      {/* Water bubbles animation */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         {[...Array(20)].map((_, i) => (
           <div
@@ -88,16 +102,24 @@ const Dashboard = () => {
       {notification && <p className="mb-4 text-red-400 z-10">{notification}</p>}
 
       {profile ? (
-        <div className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl shadow-xl w-full max-w-lg text-white z-10">
+        <div className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl shadow-xl w-full max-w-lg text-white z-10 text-center">
+          <div className="mb-6">
+            <img
+              src={profile.profilePic ? `http://localhost:3001/${profile.profilePic}` : 'https://via.placeholder.com/150x150.png?text=No+Image'}
+              alt="Profile"
+              className="w-32 h-32 mx-auto rounded-full border-4 border-blue-500 shadow-lg object-cover"
+            />
+          </div>
+
           {editMode ? (
-            <form onSubmit={handleUpdate} className="space-y-5">
+            <form onSubmit={handleUpdate} className="space-y-5 text-left">
               <div>
                 <label className="block text-sm mb-1">Full Name</label>
                 <input
                   type="text"
                   name="fullName"
                   value={formData.fullName}
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                   className="bg-black/30 border border-gray-600 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
@@ -107,7 +129,7 @@ const Dashboard = () => {
                   type="text"
                   name="username"
                   value={formData.username}
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                   className="bg-black/30 border border-gray-600 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
@@ -117,8 +139,18 @@ const Dashboard = () => {
                   type="email"
                   name="email"
                   value={formData.email}
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                   className="bg-black/30 border border-gray-600 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Profile Picture</label>
+                <input
+                  type="file"
+                  name="profilePic"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="text-white"
                 />
               </div>
               <div className="flex justify-between mt-6">
@@ -127,6 +159,7 @@ const Dashboard = () => {
                   onClick={() => {
                     setEditMode(false);
                     setNotification('');
+                    setProfilePic(null);
                   }}
                   className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg"
                 >
@@ -142,15 +175,9 @@ const Dashboard = () => {
             </form>
           ) : (
             <div className="space-y-4">
-              <p>
-                <strong>Full Name:</strong> {profile.fullName}
-              </p>
-              <p>
-                <strong>Username:</strong> {profile.username}
-              </p>
-              <p>
-                <strong>Email:</strong> {profile.email}
-              </p>
+              <p><strong>Full Name:</strong> {profile.fullName}</p>
+              <p><strong>Username:</strong> {profile.username}</p>
+              <p><strong>Email:</strong> {profile.email}</p>
               <button
                 onClick={() => setEditMode(true)}
                 className="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
