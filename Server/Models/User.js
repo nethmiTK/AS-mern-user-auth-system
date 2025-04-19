@@ -1,14 +1,11 @@
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
-  fullName: String,
-  username: String,
-  email: String,
-  password: String,
-  profilePic: {
-    type: String,
-    default: '',
-  },
+const UserSchema = new mongoose.Schema({
+  fullName: { type: String, required: true },
+  username: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  pp:{ type: String, default: 'https://i.imgur.com/4e0j5xk.png' }, // Default profile picture URL
 });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('User', UserSchema);

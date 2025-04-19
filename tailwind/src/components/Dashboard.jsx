@@ -9,8 +9,8 @@ const Dashboard = () => {
     fullName: '',
     username: '',
     email: '',
+    pp: null,
   });
-  const [profilePic, setProfilePic] = useState(null);
   const [notification, setNotification] = useState('');
   const navigate = useNavigate();
 
@@ -34,6 +34,7 @@ const Dashboard = () => {
           fullName: res.data.fullName,
           username: res.data.username,
           email: res.data.email,
+          pp: null,
         });
         setNotification('');
       } catch (err) {
@@ -45,12 +46,12 @@ const Dashboard = () => {
     fetchProfile();
   }, [navigate]);
 
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleImageChange = (e) => {
-    setProfilePic(e.target.files[0]);
+  const handleFileChange = (e) => {
+    setFormData({ ...formData, pp: e.target.files[0] });
   };
 
   const handleUpdate = async (e) => {
@@ -61,15 +62,14 @@ const Dashboard = () => {
     data.append('fullName', formData.fullName);
     data.append('username', formData.username);
     data.append('email', formData.email);
-    if (profilePic) {
-      data.append('profilePic', profilePic);
+    if (formData.pp instanceof File) {
+      data.append('pp', formData.pp);
     }
 
     try {
       const res = await axios.put('http://localhost:3001/api/users/update', data, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
         },
       });
       setProfile(res.data.user);
@@ -83,6 +83,7 @@ const Dashboard = () => {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] flex flex-col items-center justify-center p-6 overflow-hidden">
+      {/* Water bubbles animation */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         {[...Array(20)].map((_, i) => (
           <div
@@ -102,24 +103,16 @@ const Dashboard = () => {
       {notification && <p className="mb-4 text-red-400 z-10">{notification}</p>}
 
       {profile ? (
-        <div className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl shadow-xl w-full max-w-lg text-white z-10 text-center">
-          <div className="mb-6">
-            <img
-              src={profile.profilePic ? `http://localhost:3001/${profile.profilePic}` : 'https://via.placeholder.com/150x150.png?text=No+Image'}
-              alt="Profile"
-              className="w-32 h-32 mx-auto rounded-full border-4 border-blue-500 shadow-lg object-cover"
-            />
-          </div>
-
+        <div className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl shadow-xl w-full max-w-lg text-white z-10">
           {editMode ? (
-            <form onSubmit={handleUpdate} className="space-y-5 text-left">
+            <form onSubmit={handleUpdate} className="space-y-5">
               <div>
                 <label className="block text-sm mb-1">Full Name</label>
                 <input
                   type="text"
                   name="fullName"
                   value={formData.fullName}
-                  onChange={handleInputChange}
+                  onChange={handleChange}
                   className="bg-black/30 border border-gray-600 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
@@ -129,7 +122,7 @@ const Dashboard = () => {
                   type="text"
                   name="username"
                   value={formData.username}
-                  onChange={handleInputChange}
+                  onChange={handleChange}
                   className="bg-black/30 border border-gray-600 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
@@ -139,7 +132,7 @@ const Dashboard = () => {
                   type="email"
                   name="email"
                   value={formData.email}
-                  onChange={handleInputChange}
+                  onChange={handleChange}
                   className="bg-black/30 border border-gray-600 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
@@ -147,10 +140,10 @@ const Dashboard = () => {
                 <label className="block text-sm mb-1">Profile Picture</label>
                 <input
                   type="file"
-                  name="profilePic"
+                  name="pp"
                   accept="image/*"
-                  onChange={handleImageChange}
-                  className="text-white"
+                  onChange={handleFileChange}
+                  className="bg-black/30 border border-gray-600 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
               <div className="flex justify-between mt-6">
@@ -159,7 +152,6 @@ const Dashboard = () => {
                   onClick={() => {
                     setEditMode(false);
                     setNotification('');
-                    setProfilePic(null);
                   }}
                   className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg"
                 >
@@ -175,9 +167,27 @@ const Dashboard = () => {
             </form>
           ) : (
             <div className="space-y-4">
-              <p><strong>Full Name:</strong> {profile.fullName}</p>
-              <p><strong>Username:</strong> {profile.username}</p>
-              <p><strong>Email:</strong> {profile.email}</p>
+              <p>
+                <strong>Full Name:</strong> {profile.fullName}
+              </p>
+              <p>
+                <strong>Username:</strong> {profile.username}
+              </p>
+              <p>
+                <strong>Email:</strong> {profile.email}
+              </p>
+              <p>
+                <strong>Profile Picture:</strong><br />
+                <img
+                  src={
+                    profile.pp.startsWith('http')
+                      ? profile.pp
+                      : `http://localhost:3001${profile.pp}`
+                  }
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full object-cover mt-2"
+                />
+              </p>
               <button
                 onClick={() => setEditMode(true)}
                 className="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
